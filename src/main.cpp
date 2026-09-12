@@ -2,59 +2,14 @@
 #include <iostream>
 #include <cmath>
 
-struct Player
-{
-    float x;
-    float y;
-    int health;
-    float speed;
-};
-
-void printPlayerPosition(const Player& player)
-{
-    std::cout << "Player: " << player.x << ", " << player.y << std::endl;
-}
-
-void updatePlayer(Player& player, float deltaTime)
-{
-    float directionX = 1.0f;
-    float directionY = 1.0f;
-
-    const bool* keyboardState = SDL_GetKeyboardState(nullptr);
-
-    float length = std::sqrt(directionX * directionX + directionY * directionY);
-
-    if (keyboardState[SDL_SCANCODE_W])
-        player.y -= directionY * player.speed * deltaTime;
-    
-    if (keyboardState[SDL_SCANCODE_S])
-        player.y += directionY * player.speed * deltaTime;
-
-    if (keyboardState[SDL_SCANCODE_A])
-        player.x -= directionX * player.speed * deltaTime;
-        
-    if (keyboardState[SDL_SCANCODE_D])
-        player.x += directionX * player.speed * deltaTime;    
-        
-    if (player.x < 0)
-        player.x = 0;
-
-    if (player.x > 750)
-        player.x = 750;
-
-    if (player.y < 0)
-        player.y = 0;
-    
-    if (player.y > 550)
-        player.y = 550;
-}
+#include "Player.h"
 
 void renderPlayer(SDL_Renderer* renderer, const Player& player)
 {
     SDL_FRect rectangle;
 
-    rectangle.x = player.x;
-    rectangle.y = player.y;
+    rectangle.x = player.getX();
+    rectangle.y = player.getY();
     rectangle.w = 50.0f;
     rectangle.h = 50.0f;
     
@@ -64,8 +19,8 @@ void renderPlayer(SDL_Renderer* renderer, const Player& player)
 
 int main()
 {
-    Player player{0.0f, 0.0f, 100, 10.0f};
-    float deltaTime = 0.0016f;
+    float deltaTime;
+    Player player(0, 0);
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -94,10 +49,16 @@ int main()
     }
 
     bool gameIsRunning = true;
+    Uint64 previousTime = SDL_GetTicksNS();
+
+    const Uint64 targetFrameTime = 1000000000 / 60;
 
     while (gameIsRunning)
     {
         SDL_Event event;
+        Uint64 currentTime = SDL_GetTicksNS();
+        Uint64 frameTime;
+        deltaTime = (currentTime - previousTime) / 1000000000.0f;
 
         while (SDL_PollEvent(&event))
         {
@@ -107,7 +68,12 @@ int main()
             }
         }
 
-        updatePlayer(player, deltaTime);
+        player.update(deltaTime);
+
+        int FPS;
+        std::cout << "deltaTime: " << deltaTime << std::endl;
+        FPS = 1 / deltaTime;
+        std::cout << "FPS: " << FPS << std::endl;
 
         SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
         SDL_RenderClear(renderer);
@@ -115,6 +81,10 @@ int main()
         renderPlayer(renderer, player);
 
         SDL_RenderPresent(renderer);
+        previousTime = currentTime;
+        frameTime = SDL_GetTicksNS() - currentTime;
+        if (frameTime < targetFrameTime)
+            SDL_DelayPrecise(targetFrameTime - frameTime);
     }
 
     SDL_DestroyRenderer(renderer);

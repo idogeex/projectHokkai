@@ -9,6 +9,8 @@ add_subdirectory(external/SDL)
 
 add_executable(ProjectHokkai
     src/main.cpp
+    src/Player.cpp
+    src/Player.h
 )
 
 target_link_libraries(ProjectHokkai PRIVATE SDL3::SDL3)
