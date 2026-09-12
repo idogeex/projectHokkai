@@ -17,7 +17,7 @@ void updatePlayer(Player& player, float deltaTime)
 {
     const bool* keyboardState = SDL_GetKeyboardState(nullptr);
     float speed;
-
+    
     if (keyboardState[SDL_SCANCODE_W])
         player.y -= speed * deltaTime;
     
