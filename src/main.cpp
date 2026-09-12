@@ -1,11 +1,13 @@
 #include <SDL3/SDL.h>
 #include <iostream>
+#include <cmath>
 
 struct Player
 {
     float x;
     float y;
     int health;
+    float speed;
 };
 
 void printPlayerPosition(const Player& player)
@@ -15,20 +17,24 @@ void printPlayerPosition(const Player& player)
 
 void updatePlayer(Player& player, float deltaTime)
 {
+    float directionX = 1.0f;
+    float directionY = 1.0f;
+
     const bool* keyboardState = SDL_GetKeyboardState(nullptr);
-    float speed;
-    
+
+    float length = std::sqrt(directionX * directionX + directionY * directionY);
+
     if (keyboardState[SDL_SCANCODE_W])
-        player.y -= speed * deltaTime;
+        player.y -= directionY * player.speed * deltaTime;
     
     if (keyboardState[SDL_SCANCODE_S])
-        player.y += speed * deltaTime;
+        player.y += directionY * player.speed * deltaTime;
 
     if (keyboardState[SDL_SCANCODE_A])
-        player.x -= speed * deltaTime;
+        player.x -= directionX * player.speed * deltaTime;
         
     if (keyboardState[SDL_SCANCODE_D])
-        player.x += speed * deltaTime;    
+        player.x += directionX * player.speed * deltaTime;    
         
     if (player.x < 0)
         player.x = 0;
@@ -47,8 +53,8 @@ void renderPlayer(SDL_Renderer* renderer, const Player& player)
 {
     SDL_FRect rectangle;
 
-    rectangle.x = static_cast<float>(player.x);
-    rectangle.y = static_cast<float>(player.y); 
+    rectangle.x = player.x;
+    rectangle.y = player.y;
     rectangle.w = 50.0f;
     rectangle.h = 50.0f;
     
@@ -58,8 +64,8 @@ void renderPlayer(SDL_Renderer* renderer, const Player& player)
 
 int main()
 {
-    Player player{0, 0, 100};
-    float deltaTime;
+    Player player{0.0f, 0.0f, 100, 10.0f};
+    float deltaTime = 0.0016f;
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
