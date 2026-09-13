@@ -31,8 +31,8 @@ void Player::update(float deltaTime)
 
     if (length > 0)
     {
-        directionX = directionX / length;
-        directionY = directionY / length;
+        directionX /= length;
+        directionY /= length;
     }        
 
     if (keyboardState[SDL_SCANCODE_W])
@@ -58,4 +58,28 @@ void Player::update(float deltaTime)
     
     if (y > 550)
         y = 550;
+}
+
+void Player::render(SDL_Renderer* renderer)
+{
+    SDL_FRect rectangle;
+
+    rectangle.x = getX();
+    rectangle.y = getY();
+    rectangle.w = 50.0f;
+    rectangle.h = 50.0f;
+    
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderFillRect(renderer, &rectangle);
+}
+
+void Player::takeDamage(int damage)
+{
+    if((health -= damage) < 0)
+        health = 0;
+}
+
+void Player::attack()
+{
+    std::cout<< "Attack!" << std::endl;
 }

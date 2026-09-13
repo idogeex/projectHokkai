@@ -15,8 +15,15 @@ public:
 
     float getX() const { return x; }
     float getY() const { return y; }
+    int getHealth() const { return health; }
+
+    void reset() { x = 0, y = 0, health = 100; }
 
     void update(float deltaTime);
+    void render(SDL_Renderer* renderer);
+    void takeDamage(int damage);
+    void attack();
+    bool isAlive() const { return health > 0; }
 
     void printPlayerPosition()
     {
