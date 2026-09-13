@@ -11,7 +11,7 @@ public:
     void update(float deltaTime, float targetX, float targetY);
     bool isColliding(float playerX, float playerY);
 
-    void reset() { x = 400, y = 400;}
+    void reset() { x = 400, y = 400, health = 100;}
     void takeDamage(int damage);
 
     float getX() const { return x; }

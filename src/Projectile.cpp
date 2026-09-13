@@ -1,10 +1,14 @@
+#include <cmath>
+
 #include "Projectile.h"
 
 Projectile::Projectile(float startX, float startY, float directionX, float directionY)
 {
     x = startX;
     y = startY;
-    speed = 400.0f;
+    speed = 100.0f;
+    active = true;
+    // damageTimer = 0.0f;
 
     this->directionX = directionX;
     this->directionY = directionY;
@@ -22,6 +26,8 @@ void Projectile::update(float deltaTime)
 
     x += directionX * speed * deltaTime;
     y += directionY * speed * deltaTime;
+
+    // damageTimer += deltaTime;
 }
 
 void Projectile::render(SDL_Renderer* renderer)

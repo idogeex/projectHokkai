@@ -16,13 +16,13 @@ void Player::update(float deltaTime)
     const bool* keyboardState = SDL_GetKeyboardState(nullptr);
 
     if (keyboardState[SDL_SCANCODE_W])
-        directionY += 1;
+        directionY -= 1;
         
     if (keyboardState[SDL_SCANCODE_S])
         directionY += 1;
 
     if (keyboardState[SDL_SCANCODE_A])
-        directionX += 1;
+        directionX -= 1;
         
     if (keyboardState[SDL_SCANCODE_D])
         directionX += 1;    
@@ -36,13 +36,13 @@ void Player::update(float deltaTime)
     }        
 
     if (keyboardState[SDL_SCANCODE_W])
-        y -= directionY * speed * deltaTime;
+        y += directionY * speed * deltaTime;
 
     if (keyboardState[SDL_SCANCODE_S])
         y += directionY * speed * deltaTime;
 
     if (keyboardState[SDL_SCANCODE_A])
-        x -= directionX * speed * deltaTime;
+        x += directionX * speed * deltaTime;
         
     if (keyboardState[SDL_SCANCODE_D])
         x += directionX * speed * deltaTime;
@@ -79,7 +79,8 @@ void Player::takeDamage(int damage)
         health = 0;
 }
 
-void Player::attack()
-{
+bool Player::attack()
+{   
     std::cout<< "Attack!" << std::endl;
+    return true;
 }

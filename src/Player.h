@@ -22,7 +22,7 @@ public:
     void update(float deltaTime);
     void render(SDL_Renderer* renderer);
     void takeDamage(int damage);
-    void attack();
+    bool attack();
     bool isAlive() const { return health > 0; }
 
     void printPlayerPosition()

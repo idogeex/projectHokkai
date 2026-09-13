@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "Enemy.h"
 
 Enemy::Enemy(float startX, float startY)

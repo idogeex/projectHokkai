@@ -1,6 +1,7 @@
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 #include "Player.h"
 #include "Enemy.h"
@@ -12,21 +13,35 @@ enum class GameState
     GameOver
 };
 
-void updateGame(Player& player, Enemy& enemy, Projectile& projectile, float deltaTime, GameState& gameState)
+void updateGame(Player& player, Enemy& enemy, std::vector<Projectile>& projectiles, float deltaTime, 
+    GameState& gameState)
 {
     if(gameState == GameState::Playing)
     {
         player.update(deltaTime);
-        enemy.update(deltaTime, player.getX(), player.getY());
-        projectile.update(deltaTime);
-
-        if(projectile.isColliding(enemy.getX(), enemy.getY()))
+        if(enemy.isAlive())
+            enemy.update(deltaTime, player.getX(), player.getY());
+    
+        for(Projectile& projectile: projectiles)
         {
-            enemy.takeDamage(50);
-            std::cout << enemy.getHealth() << std::endl;
-                if(!enemy.isAlive())
-                    std::cout << "Enemy is dead." << std::endl;
-        }
+            if(projectile.isActive())
+            {
+                projectile.update(deltaTime);
+
+                if(projectile.isColliding(enemy.getX(), enemy.getY()))
+                {
+                    // if(projectile.getDamageTimer() >= 1.0f)
+                    // {
+                        enemy.takeDamage(25);
+                        projectile.deactivate();
+                        std::cout << enemy.getHealth() << std::endl;
+                        // projectile.setDamageTimer();
+                            if(!enemy.isAlive())
+                                std::cout << "Enemy is dead." << std::endl;
+                    // }
+                }
+            }
+        }  
 
         if(enemy.isColliding(player.getX(), player.getY()))
         {
@@ -45,15 +60,18 @@ void updateGame(Player& player, Enemy& enemy, Projectile& projectile, float delt
     }
 }
 
-void resetGame(Player& player, Enemy& enemy, GameState& gameState)
+void resetGame(Player& player, Enemy& enemy, std::vector<Projectile>& projectiles,
+     GameState& gameState)
 {
     player.reset();
     enemy.reset();
+    projectiles.clear();
 
     gameState = GameState::Playing;
 }
 
-void handleEvents(bool& gameIsRunning, Player& player, Enemy& enemy, GameState& gameState)
+void handleEvents(bool& gameIsRunning, Player& player, Enemy& enemy, std::vector<Projectile>& projectiles, 
+    GameState& gameState)
 {
     SDL_Event event;
 
@@ -67,22 +85,34 @@ void handleEvents(bool& gameIsRunning, Player& player, Enemy& enemy, GameState& 
         if (event.type == SDL_EVENT_KEY_DOWN)
         {
             if(event.key.scancode == SDL_SCANCODE_R && gameState == GameState::GameOver)
-                resetGame(player, enemy, gameState);
-            else if(event.key.scancode == SDL_SCANCODE_SPACE)
-                player.attack();
+                resetGame(player, enemy, projectiles, gameState);
+            else if(event.key.scancode == SDL_SCANCODE_SPACE && gameState == GameState::Playing)
+            {
+                if(player.attack())
+                {
+                    Projectile projectile(player.getX(), player.getY(), 1.0f, 0.0f);
+                    projectiles.push_back(projectile);
+                }
+            }
         }
     }
 }
 
-void renderGame(SDL_Renderer* renderer, Player& player, Enemy& enemy, Projectile& projectile,GameState& gameState)
+void renderGame(SDL_Renderer* renderer, Player& player, Enemy& enemy, std::vector<Projectile>& projectiles, 
+    GameState& gameState)
 {
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
     SDL_RenderClear(renderer);
 
     player.render(renderer);
-    enemy.render(renderer);
-    projectile.render(renderer);
+    if(enemy.isAlive())
+        enemy.render(renderer);
 
+    for(Projectile& projectile : projectiles)
+    {
+        if(projectile.isActive())
+            projectile.render(renderer);
+    }
     if(gameState == GameState::GameOver)
     {
         SDL_FRect gameOverRectangle;
@@ -104,7 +134,7 @@ int main()
     float deltaTime;
     Player player(0.0f, 100.0f);
     Enemy enemy(400.0f, 100.0f);
-    Projectile projectile(100.0f, 100.0f, 1.0f, 0.0f);
+    std::vector<Projectile> projectiles;
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
@@ -147,11 +177,11 @@ int main()
         Uint64 frameTime;
         deltaTime = (currentTime - previousTime) / 1000000000.0f;
 
-        handleEvents(gameIsRunning, player, enemy, gameState);
+        handleEvents(gameIsRunning, player, enemy, projectiles, gameState);
 
-        updateGame(player, enemy, projectile, deltaTime, gameState);
+        updateGame(player, enemy, projectiles, deltaTime, gameState);
 
-        renderGame(renderer, player, enemy, projectile, gameState);
+        renderGame(renderer, player, enemy, projectiles, gameState);
 
         frameTime = SDL_GetTicksNS() - currentTime;
         if (frameTime < targetFrameTime)
