@@ -28,7 +28,7 @@ void updateGame(Player& player, Enemy& enemy, std::vector<Projectile>& projectil
             {
                 projectile.update(deltaTime);
 
-                if(projectile.isColliding(enemy.getX(), enemy.getY()))
+                if(projectile.isColliding(enemy.getX(), enemy.getY()) && enemy.isAlive())
                 {
                     // if(projectile.getDamageTimer() >= 1.0f)
                     // {
@@ -43,7 +43,7 @@ void updateGame(Player& player, Enemy& enemy, std::vector<Projectile>& projectil
             }
         }  
 
-        if(enemy.isColliding(player.getX(), player.getY()))
+        if(enemy.isColliding(player.getX(), player.getY()) && enemy.isAlive())
         {
             if(enemy.getDamageTimer() >= 1.0f)
             {
@@ -84,13 +84,14 @@ void handleEvents(bool& gameIsRunning, Player& player, Enemy& enemy, std::vector
 
         if (event.type == SDL_EVENT_KEY_DOWN)
         {
-            if(event.key.scancode == SDL_SCANCODE_R && gameState == GameState::GameOver)
+            if(event.key.scancode == SDL_SCANCODE_R && gameState == GameState::GameOver ||
+            event.key.scancode == SDL_SCANCODE_R && gameState == GameState::Playing)
                 resetGame(player, enemy, projectiles, gameState);
             else if(event.key.scancode == SDL_SCANCODE_SPACE && gameState == GameState::Playing)
             {
                 if(player.attack())
                 {
-                    Projectile projectile(player.getX(), player.getY(), 1.0f, 0.0f);
+                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 1.0f, 0.0f);
                     projectiles.push_back(projectile);
                 }
             }
