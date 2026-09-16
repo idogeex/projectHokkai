@@ -6,6 +6,10 @@ Player::Player(float startX, float startY)
     y = startY;
     health = 100;
     speed = 200.0f;
+    directionX = 1;
+    directionY = 0;
+    attackTimer = 0.25f;
+    attackCooldown = 1.0f;
 }
 
 void Player::update(float deltaTime)
@@ -25,7 +29,7 @@ void Player::update(float deltaTime)
         directionX -= 1;
         
     if (keyboardState[SDL_SCANCODE_D])
-        directionX += 1;    
+        directionX += 1;
 
     float length = std::sqrt(directionX * directionX + directionY * directionY);
 
@@ -33,7 +37,10 @@ void Player::update(float deltaTime)
     {
         directionX /= length;
         directionY /= length;
-    }        
+
+        Player::directionX = directionX;
+        Player::directionY = directionY;
+    }
 
     if (keyboardState[SDL_SCANCODE_W])
         y += directionY * speed * deltaTime;
@@ -58,6 +65,8 @@ void Player::update(float deltaTime)
     
     if (y > 550)
         y = 550;
+
+    attackTimer += deltaTime;
 }
 
 void Player::render(SDL_Renderer* renderer)
@@ -81,6 +90,11 @@ void Player::takeDamage(int damage)
 
 bool Player::attack()
 {   
-    std::cout<< "Attack!" << std::endl;
-    return true;
+    if(attackTimer >= attackCooldown)
+    {
+        attackTimer = 0.0f;
+        return true;
+    }
+    else
+        return false;
 }

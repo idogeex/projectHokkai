@@ -30,16 +30,19 @@ void updateGame(Player& player, Enemy& enemy, std::vector<Projectile>& projectil
 
                 if(projectile.isColliding(enemy.getX(), enemy.getY()) && enemy.isAlive())
                 {
-                    // if(projectile.getDamageTimer() >= 1.0f)
-                    // {
-                        enemy.takeDamage(25);
-                        projectile.deactivate();
-                        std::cout << enemy.getHealth() << std::endl;
-                        // projectile.setDamageTimer();
-                            if(!enemy.isAlive())
-                                std::cout << "Enemy is dead." << std::endl;
-                    // }
+                    enemy.takeDamage(projectile.getDamage());
+                    projectile.deactivate();
+                    std::cout << enemy.getHealth() << std::endl;
+                        if(!enemy.isAlive())
+                            std::cout << "Enemy is dead." << std::endl;
                 }
+            }
+            else
+            {
+                std::erase_if(projectiles, [](const Projectile& projectile) 
+                {
+                    return !projectile.isActive();
+                });
             }
         }  
 
@@ -87,11 +90,38 @@ void handleEvents(bool& gameIsRunning, Player& player, Enemy& enemy, std::vector
             if(event.key.scancode == SDL_SCANCODE_R && gameState == GameState::GameOver ||
             event.key.scancode == SDL_SCANCODE_R && gameState == GameState::Playing)
                 resetGame(player, enemy, projectiles, gameState);
-            else if(event.key.scancode == SDL_SCANCODE_SPACE && gameState == GameState::Playing)
+
+            float mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+            float dirX, dirY;
+            dirX = mouseX - (player.getX() + 25.0f);
+            dirY = mouseY - (player.getY() + 25.0f);
+
+            float length = std::sqrt(dirX * dirX + dirY * dirY);
+
+            if (length > 0)
+            {
+                dirX /= length;
+                dirY /= length;
+            }
+
+            if(event.key.scancode == SDL_SCANCODE_SPACE && gameState == GameState::Playing)
             {
                 if(player.attack())
                 {
-                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 1.0f, 0.0f);
+                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 100.0f, 25.0f,
+                        dirX, dirY);
+                    projectiles.push_back(projectile);
+                }
+            }
+            
+            if(event.key.scancode == SDL_SCANCODE_LSHIFT && gameState == GameState::Playing)
+            {
+                if(player.attack())
+                {
+                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 300.0f, 50.0f,
+                        dirX, dirY);
                     projectiles.push_back(projectile);
                 }
             }

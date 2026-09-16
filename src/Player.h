@@ -9,6 +9,8 @@ private:
     float y;
     int health;
     float speed;
+    float directionX, directionY;
+    float attackCooldown, attackTimer;
 
 public:
     Player(float startX, float startY);
@@ -16,6 +18,8 @@ public:
     float getX() const { return x; }
     float getY() const { return y; }
     int getHealth() const { return health; }
+    int getDirectionX() const { return directionX; }
+    int getDirectionY() const { return directionY; }
 
     void reset() { x = 0, y = 0, health = 100; }
 
