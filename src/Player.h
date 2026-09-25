@@ -21,7 +21,7 @@ public:
     float getDirectionX() const { return directionX; }
     float getDirectionY() const { return directionY; }
 
-    void reset() { x = 0, y = 0, health = 100; }
+    void reset() { x = 350, y = 250, health = 100; }
 
     void update(float deltaTime);
     void render(SDL_Renderer* renderer);

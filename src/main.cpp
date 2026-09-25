@@ -66,19 +66,10 @@ void updateGame(Player& player, std::vector<Enemy>& enemies, std::vector<Project
                 }
             }  
         }
-            
-        std::erase_if(projectiles, [](const Projectile& projectile) { return !projectile.isActive(); });
-        std::erase_if(enemies, [](const Enemy& enemy) { return !enemy.isAlive(); });
-        
-        if(enemies.empty())
-        {
-            currentWave++;
-            spawnWave(enemies, player, currentWave);
-        }
 
         for(Enemy& enemy: enemies)
         {
-            if(enemy.isColliding(player.getX(), player.getY()) && enemy.isAlive())
+            if(enemy.isAlive() && enemy.isColliding(player.getX(), player.getY()))
             {
                 if(enemy.getDamageTimer() >= 1.0f)
                 {
@@ -92,6 +83,15 @@ void updateGame(Player& player, std::vector<Enemy>& enemies, std::vector<Project
                     }
                 }
             }
+        }
+            
+        std::erase_if(projectiles, [](const Projectile& projectile) { return !projectile.isActive(); });
+        std::erase_if(enemies, [](const Enemy& enemy) { return !enemy.isAlive(); });
+        
+        if(enemies.empty())
+        {
+            currentWave++;
+            spawnWave(enemies, player, currentWave);
         }
     }
 }
@@ -207,7 +207,7 @@ int main()
     Player player(350.0f, 250.0f);
     std::vector<Enemy> enemies;
     std::vector<Projectile> projectiles;
-    int currentWave = 1;
+    int currentWave = 0;
 
     if (!SDL_Init(SDL_INIT_VIDEO))
     {
