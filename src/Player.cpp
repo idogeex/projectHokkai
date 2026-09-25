@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "Player.h"
 
 Player::Player(float startX, float startY)
@@ -8,8 +10,8 @@ Player::Player(float startX, float startY)
     speed = 200.0f;
     directionX = 1;
     directionY = 0;
-    attackTimer = 0.25f;
     attackCooldown = 1.0f;
+    attackTimer = attackCooldown;
 }
 
 void Player::update(float deltaTime)
@@ -42,17 +44,8 @@ void Player::update(float deltaTime)
         Player::directionY = directionY;
     }
 
-    if (keyboardState[SDL_SCANCODE_W])
-        y += directionY * speed * deltaTime;
-
-    if (keyboardState[SDL_SCANCODE_S])
-        y += directionY * speed * deltaTime;
-
-    if (keyboardState[SDL_SCANCODE_A])
-        x += directionX * speed * deltaTime;
-        
-    if (keyboardState[SDL_SCANCODE_D])
-        x += directionX * speed * deltaTime;
+    y += directionY * speed * deltaTime;
+    x += directionX * speed * deltaTime;
         
     if (x < 0)
         x = 0;
