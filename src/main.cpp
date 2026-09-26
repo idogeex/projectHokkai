@@ -1,7 +1,10 @@
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <string>
+#include <algorithm>
 
 #include "Player.h"
 #include "Enemy.h"
@@ -31,8 +34,49 @@ void spawnWave(std::vector<Enemy>& enemies, Player& player, int wave)
     }
 }
 
+void renderText(SDL_Renderer* renderer, TTF_Font* font, const std::string& text, float x, float y)
+{
+    SDL_Color textColor = {255, 255, 255, 255};
+    SDL_Surface* surface = TTF_RenderText_Blended(font, text.c_str(), text.size(), textColor);
+    
+    if(surface == nullptr)
+    {
+        std::cout << "text failed" << SDL_GetError() << std::endl;
+        return;
+    }
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    
+    if(texture == nullptr)
+    {
+        std::cout << "texture failed" << SDL_GetError() << std::endl;
+        SDL_DestroySurface(surface);
+        return;
+    }
+
+    SDL_DestroySurface(surface);
+
+    float textureWidth, textureHeight;
+
+    if (!SDL_GetTextureSize(texture, &textureWidth, &textureHeight))
+    {
+        std::cout << "Getting texture size failed: " << SDL_GetError() << std::endl;
+        SDL_DestroyTexture(texture);
+        return;
+    }
+
+    SDL_FRect destination;
+    destination.x = x;
+    destination.y = y;
+    destination.w = textureWidth;
+    destination.h = textureHeight;
+
+    SDL_RenderTexture(renderer, texture, nullptr, &destination);
+    SDL_DestroyTexture(texture);
+}
+
 void updateGame(Player& player, std::vector<Enemy>& enemies, std::vector<Projectile>& projectiles, float deltaTime, 
-    GameState& gameState, int& currentWave)
+    GameState& gameState, int& currentWave, float& waveTimer)
 {
     if(gameState == GameState::Playing)
     {
@@ -88,18 +132,29 @@ void updateGame(Player& player, std::vector<Enemy>& enemies, std::vector<Project
         std::erase_if(projectiles, [](const Projectile& projectile) { return !projectile.isActive(); });
         std::erase_if(enemies, [](const Enemy& enemy) { return !enemy.isAlive(); });
         
+        const float waveCooldown = 3.0f;
+
         if(enemies.empty())
         {
-            currentWave++;
-            spawnWave(enemies, player, currentWave);
+            waveTimer -= deltaTime;
+            std::cout << waveTimer << std::endl;
+            if(waveTimer <= 0.0f)
+            {   
+                currentWave++;
+                spawnWave(enemies, player, currentWave);
+                waveTimer = waveCooldown;
+            }
         }
     }
 }
 
 void resetGame(Player& player, std::vector<Enemy>& enemies, std::vector<Projectile>& projectiles, int& currentWave,
-     GameState& gameState)
+     GameState& gameState, float& waveTimer)
 {
+    const float waveCooldown = 3.0f;
+
     currentWave = 1;
+    waveTimer = waveCooldown;
 
     player.reset();
     enemies.clear();
@@ -111,7 +166,7 @@ void resetGame(Player& player, std::vector<Enemy>& enemies, std::vector<Projecti
 }
 
 void handleEvents(bool& gameIsRunning, Player& player, std::vector<Enemy>& enemies, std::vector<Projectile>& projectiles, 
-    GameState& gameState, int& currentWave)
+    GameState& gameState, int& currentWave, float& waveTimer)
 {
     SDL_Event event;
 
@@ -125,7 +180,7 @@ void handleEvents(bool& gameIsRunning, Player& player, std::vector<Enemy>& enemi
         if (event.type == SDL_EVENT_KEY_DOWN)
         {
             if(event.key.scancode == SDL_SCANCODE_R)
-                resetGame(player, enemies, projectiles, currentWave, gameState);
+                resetGame(player, enemies, projectiles, currentWave, gameState, waveTimer);
 
             float mouseX, mouseY;
             SDL_GetMouseState(&mouseX, &mouseY);
@@ -146,7 +201,7 @@ void handleEvents(bool& gameIsRunning, Player& player, std::vector<Enemy>& enemi
             {
                 if(player.attack())
                 {
-                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 100.0f, 25.0f,
+                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 100.0f, 100.0f,
                         dirX, dirY);
                     projectiles.push_back(projectile);
                 }
@@ -156,7 +211,7 @@ void handleEvents(bool& gameIsRunning, Player& player, std::vector<Enemy>& enemi
             {
                 if(player.attack())
                 {
-                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 300.0f, 50.0f,
+                    Projectile projectile(player.getX() + 25.0f, player.getY() + 25.0f, 300.0f, 100.0f,
                         dirX, dirY);
                     projectiles.push_back(projectile);
                 }
@@ -165,8 +220,8 @@ void handleEvents(bool& gameIsRunning, Player& player, std::vector<Enemy>& enemi
     }
 }
 
-void renderGame(SDL_Renderer* renderer, Player& player, std::vector<Enemy>& enemies, std::vector<Projectile>& projectiles, 
-    GameState& gameState)
+void renderGame(SDL_Renderer* renderer, Player& player, TTF_Font* font, std::vector<Enemy>& enemies, std::vector<Projectile>& projectiles, 
+    GameState& gameState, int& currentWave, float& waveTimer)
 {
     SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
     SDL_RenderClear(renderer);
@@ -183,6 +238,14 @@ void renderGame(SDL_Renderer* renderer, Player& player, std::vector<Enemy>& enem
     {
         if(projectile.isActive())
             projectile.render(renderer);
+    }
+
+    renderText(renderer, font, "Wave: " + std::to_string(currentWave), 20.0f, 20.0f);
+
+    if (enemies.empty() && gameState == GameState::Playing)
+    {
+        int secondsLeft = static_cast<int>(std::ceil(waveTimer));
+        renderText(renderer, font, "Next wave in: " + std::to_string(secondsLeft), 20.0f, 55.0f);
     }
 
     if(gameState == GameState::GameOver)
@@ -203,7 +266,8 @@ void renderGame(SDL_Renderer* renderer, Player& player, std::vector<Enemy>& enem
 
 int main()
 {
-    float deltaTime;
+    float deltaTime = 0.0f;
+    float waveTimer = 3.0f;
     Player player(350.0f, 250.0f);
     std::vector<Enemy> enemies;
     std::vector<Projectile> projectiles;
@@ -215,11 +279,19 @@ int main()
         return 1;
     }
 
+    if (!TTF_Init())
+    {
+        std::cout << "TTF initialization failed" << SDL_GetError() << std::endl;
+        return 1;
+        SDL_Quit();
+    }
+
     SDL_Window* window = SDL_CreateWindow("Project Hokkai", 800, 600, 0);
 
     if (window == nullptr)
     {
         std::cout << "Window creation failed: " << SDL_GetError() << std::endl;
+        TTF_Quit();
         SDL_Quit();
         return 1;
     }
@@ -231,6 +303,18 @@ int main()
         std::cout << "Renderer creation failed: " << SDL_GetError() << std::endl;
 
         SDL_DestroyWindow(window);
+        TTF_Quit();
+        SDL_Quit();
+        return 1;
+    }
+
+    TTF_Font* font = TTF_OpenFont("font.ttf", 24);
+    if(font == nullptr)
+    {
+        std::cout << "Font loading failed: " << SDL_GetError() << std::endl;
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        TTF_Quit();
         SDL_Quit();
         return 1;
     }
@@ -250,11 +334,11 @@ int main()
         Uint64 frameTime;
         deltaTime = (currentTime - previousTime) / 1000000000.0f;
 
-        handleEvents(gameIsRunning, player, enemies, projectiles, gameState, currentWave);
+        handleEvents(gameIsRunning, player, enemies, projectiles, gameState, currentWave, waveTimer);
 
-        updateGame(player, enemies, projectiles, deltaTime, gameState, currentWave);
+        updateGame(player, enemies, projectiles, deltaTime, gameState, currentWave, waveTimer);
 
-        renderGame(renderer, player, enemies, projectiles, gameState);
+        renderGame(renderer, player, font, enemies, projectiles, gameState, currentWave, waveTimer);
 
         frameTime = SDL_GetTicksNS() - currentTime;
         if (frameTime < targetFrameTime)
@@ -262,8 +346,10 @@ int main()
         previousTime = currentTime;
     }
 
+    TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    TTF_Quit();
     SDL_Quit();
 
     return 0;

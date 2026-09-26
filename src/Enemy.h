@@ -8,6 +8,7 @@ public:
     Enemy(float startX, float startY);
 
     void render(SDL_Renderer* renderer);
+    void renderHealthBar(SDL_Renderer* renderer);
     void update(float deltaTime, float targetX, float targetY);
     bool isColliding(float playerX, float playerY);
 

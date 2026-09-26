@@ -73,6 +73,8 @@ void Player::render(SDL_Renderer* renderer)
     
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
     SDL_RenderFillRect(renderer, &rectangle);
+
+    Player::renderHealthBar(renderer);
 }
 
 void Player::takeDamage(int damage)
@@ -90,4 +92,30 @@ bool Player::attack()
     }
     else
         return false;
+}
+
+void Player::renderHealthBar(SDL_Renderer* renderer)
+{
+    SDL_FRect rectangle;
+    SDL_FRect rectangleHP;
+
+    rectangle.x = getX();
+    rectangle.y = getY() - 10.0f;
+    rectangle.w = 50.0f;
+    rectangle.h = 7.0f;
+    
+    float healthPercent = (float)Player::getHealth() / 100.0f;
+    if(healthPercent > 1.0f && healthPercent < 0.0f)
+        healthPercent = 1.0f;
+
+    rectangleHP.x = getX();
+    rectangleHP.y = getY() - 10.0f;
+    rectangleHP.w = healthPercent * 50; // 1.0f = 100% 100% = 50px 1 px = 0.5%
+    rectangleHP.h = 7.0f;
+
+    SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255);
+    SDL_RenderFillRect(renderer, &rectangle);
+
+    SDL_SetRenderDrawColor(renderer, 0, 196, 0, 255);
+    SDL_RenderFillRect(renderer, &rectangleHP);
 }
