@@ -10,12 +10,19 @@ include(FetchContent)
 add_subdirectory(external/SDL)
 
 FetchContent_Declare(
+    SDL
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG main
+)
+
+FetchContent_Declare(
     SDL_ttf
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_ttf.git
     GIT_TAG main
 )
 
 FetchContent_MakeAvailable(SDL_ttf)
+FetchContent_MakeAvailable(SDL)
 
 add_executable(ProjectHokkai WIN32
     src/main.cpp
