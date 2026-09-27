@@ -80,3 +80,28 @@ void Enemy::renderHealthBar(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 196, 0, 0, 255);
     SDL_RenderFillRect(renderer, &rectangleHP);
 }
+
+void Enemy::separateFromOthers(const std::vector<Enemy>& enemies, int currentIndex)
+{
+    float pushX = 0.0f, pushY = 0.0f;
+
+    for(int i = 0; i < enemies.size(); i++)
+    {
+        if(i == currentIndex || !enemies[i].isAlive())
+            continue;
+
+        float dx = (x + 25.0f) - (enemies[i].getX() + 25.0f);
+        float dy = (y + 25.0f) - (enemies[i].getY() + 25.0f);
+
+        float distance = std::sqrt(dx * dx + dy * dy);
+
+        if (distance > 0.0f && distance < 50.0f)
+        {
+            pushX += dx / distance;
+            pushY += dy / distance;
+        }
+    }
+
+    x += pushX;
+    y += pushY;
+}

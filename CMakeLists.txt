@@ -17,7 +17,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(SDL_ttf)
 
-add_executable(ProjectHokkai
+add_executable(ProjectHokkai WIN32
     src/main.cpp
     src/Player.cpp
     src/Enemy.cpp

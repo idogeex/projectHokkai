@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <SDL3/SDL.h>
+#include <vector>
 
 class Enemy
 {
@@ -11,6 +12,7 @@ public:
     void renderHealthBar(SDL_Renderer* renderer);
     void update(float deltaTime, float targetX, float targetY);
     bool isColliding(float playerX, float playerY);
+    void separateFromOthers(const std::vector<Enemy>& enemies, int currentIndex);
 
     void reset() { x = 400, y = 400, health = 100;}
     void takeDamage(int damage);
